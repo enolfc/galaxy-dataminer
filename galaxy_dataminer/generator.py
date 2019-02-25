@@ -38,7 +38,6 @@ def generate_tool_description(process, descr, tool_file):
     cmd.text = ' '.join(cmd_line)
     outputs = etree.SubElement(tool, 'outputs')
     for o in descr.processOutputs:
-    	print("o: %s", o)
         output_attrs = {
             'format': 'html',
             'name': 'html_file',
@@ -60,9 +59,9 @@ def find_section(config, section_id):
             s.set('name', 'DataMiner')
             return s
     # no d4science section, so creating one
-    toolbox = root.findall('toolbox')
-    s = etree.SubElement(toolbox, 'section',
-                         attrib={'name': 'DataMiner', 'id': section_id})
+    s = etree.Element('section',
+		      attrib={'name': 'DataMiner', 'id': section_id})
+    root.insert(0, s)
     return s
 
 
@@ -93,7 +92,7 @@ def main():
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.ERROR)
 
     config = etree.parse(args.config)
     root = config.getroot()
