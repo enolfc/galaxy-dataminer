@@ -83,7 +83,7 @@ def fill_section(section, gcube_vre_token, tool_dir):
 def main():
     parser = argparse.ArgumentParser(description='Build dataminer tools')
     parser.add_argument('--config', help='config file for galaxy tools')
-    parser.add_argument('--token', help='d4science token for the VRE')
+    parser.add_argument('--token', help='file with d4science token for the VRE')
     parser.add_argument('--section', default='d4science',
                         help='name of the d4science section')
     parser.add_argument('--outdir', help='tools configuration directory')
@@ -97,8 +97,11 @@ def main():
     config = etree.parse(args.config)
     root = config.getroot()
 
+    with open(args.token, 'r') as f:
+        token = f.read().strip()
+
     d4science_config = find_section(config, args.section)
-    fill_section(d4science_config, args.token, args.outdir)
+    fill_section(d4science_config, token, args.outdir)
 
     xmlstr = minidom.parseString(etree.tostring(root)).toprettyxml(indent="  ")
     print(xmlstr.encode('utf-8'))
