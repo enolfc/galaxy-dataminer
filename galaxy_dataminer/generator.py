@@ -32,7 +32,7 @@ def generate_tool_description(process, descr, tool_file):
         if inp.defaultValue and inp.dataType != 'ComplexData':
             input_attrs['value'] = inp.defaultValue
         param = etree.SubElement(inputs, 'param', attrib=input_attrs)
-        cmd_line.append("--input %(name)s=$%(name)s" % input_attrs)
+        cmd_line.append("--input '%(name)s=$%(name)s'" % input_attrs)
     cmd_line.append('--output $html_file --outdir $html_file.files_path')
     cmd_line.append('--user $__user_email__')
     cmd.text = ' '.join(cmd_line)
