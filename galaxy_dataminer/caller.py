@@ -25,7 +25,7 @@ def build_inputs(process, args_inputs):
         process_inputs[i.identifier] = i
 
     inputs = []
-    if args_inputs: 
+    if args_inputs:
         for arg in args_inputs:
             k, v = arg.split('=', 1)
             if not v:
@@ -49,57 +49,64 @@ def produce_output(execution, outfile, outdir, gcube_vre_token_header):
     # Build some simple HTML output with the links to the actual output
     html = ['<html><body><h1>DataMiner algorithm: %s</h1>'
             % execution.process.title]
-    html.append('<h2>Outputs:</h2>')
+
     exec_id = ''
     status_url = urlparse.urlparse(execution.statusLocation)
     if status_url[4]:
         exec_id = urlparse.parse_qs(status_url[4]).get('id', '')
         if exec_id:
             exec_id = exec_id.pop()
-    html.append('<ul>')
 
-    output_dict = { "outputs": []}
+    if execution.status == 'ProcessSucceeded':
+        html.append('<h2>Outputs:</h2>')
+        html.append('<ul>')
+        output_dict = { "outputs": []}
+        for out in execution.processOutputs:
+            if not out.fileName:
+                continue
+            tree = etree.parse(out.fileName)
+            featMembers = tree.findall('{http://www.opengis.net/gml}featureMember')
+            results = featMembers[0].findall('{http://ogr.maptools.org/}Result')
 
-    for out in execution.processOutputs:
-        if not out.fileName:
-            continue
-        tree = etree.parse(out.fileName)
-        featMembers = tree.findall('{http://www.opengis.net/gml}featureMember')
-        results = featMembers[0].findall('{http://ogr.maptools.org/}Result')
+            for result in results:
+                data = result.find('{http://www.d4science.org}Data')
+                mime_type = result.find('{http://www.d4science.org}MimeType')
+                extension = mimetypes.guess_extension(mime_type.text)
+                if not extension:
+                    extension = ''
+                desc = result.find('{http://www.d4science.org}Description')
+                r = requests.get(data.text, stream=True,
+                                 headers=gcube_vre_token_header)
 
-        for result in results:
-            data = result.find('{http://www.d4science.org}Data')
-            mime_type = result.find('{http://www.d4science.org}MimeType')
-            extension = mimetypes.guess_extension(mime_type.text)
-            if not extension:
-                extension = ''
-            desc = result.find('{http://www.d4science.org}Description')
-            r = requests.get(data.text, stream=True,
-                             headers=gcube_vre_token_header)
+                # Throw an error for bad status codes
+                r.raise_for_status()
 
-            # Throw an error for bad status codes
-            r.raise_for_status()
-
-            file_name = '%s%s' % (desc.text, extension)
-            with open(os.path.join(outdir, file_name), 'wb') as handle:
-                for block in r.iter_content(1024):
-                    handle.write(block)
-            html.append('<li><a href="%s">%s</a></li>'
-                        % (file_name, desc.text))
-	    output_dict['outputs'].append({'name': file_name, 'mime_type': mime_type.text})
+                file_name = '%s%s' % (desc.text, extension)
+                with open(os.path.join(outdir, file_name), 'wb') as handle:
+                    for block in r.iter_content(1024):
+                        handle.write(block)
+                html.append('<li><a href="%s">%s</a></li>'
+                            % (file_name, desc.text))
+                output_dict['outputs'].append({'name': file_name, 'mime_type': mime_type.text})
+        html.append('</ul>')
+        with open(os.path.join(outdir, 'wps-out.json'), 'w') as descriptor:
+            descriptor.write(json.dumps(output_dict))
+    else:
+        html.append('<h2>Error:</h2>')
+        html.append('<ul>')
+        for e in execution.errors:
+            html.append('<li><pre>%s</pre></li>' % e.text)
         html.append('</ul>')
 
-        html.append('<h2>Execution details:</h2><ul>')
-        html.append('<li>ID: %s</li>' % exec_id)
-        html.append('<li><a href="%s">WPS log</a></li>' % LOGFILE_NAME)
-        html.append('</ul>')
+    html.append('<h2>Execution details:</h2><ul>')
+    html.append('<li>Status: %s</li>' % execution.status)
+    html.append('<li>ID: %s</li>' % exec_id)
+    html.append('<li><a href="%s">WPS log</a></li>' % LOGFILE_NAME)
+    html.append('</ul>')
     html.append('</body></html>')
     if outfile:
         with open(outfile, 'w') as ofile:
             ofile.write(''.join(html))
-
-    with open(os.path.join(outdir, 'wps-out.json'), 'w') as descriptor:
-        descriptor.write(json.dumps(output_dict))
 
 
 def call_wps(args):
@@ -112,7 +119,7 @@ def call_wps(args):
         gcube_vre_token = f.read()
 
     logging.info("User: %s", args.user)
-    logging.info("Token: %s", hashlib.sha256(gcube_vre_token).hexdigest())
+    logging.info("Token: (SHA256) %s", hashlib.sha256(gcube_vre_token).hexdigest())
 
     gcube_vre_token_header = {'gcube-token': gcube_vre_token}
 
@@ -128,7 +135,10 @@ def call_wps(args):
     execution = wps.execute(process_id, inputs, outputs)
     monitorExecution(execution, sleepSecs=5, download=True)
     logging.info("Execution status: %s", execution.status)
+    exit_code = 0 if execution.status == 'ProcessSucceded' else 1
+    logging.info("Exit code: %d", exit_code)
     produce_output(execution, args.output, args.outdir, gcube_vre_token_header)
+    return exit_code
 
 
 def main():
@@ -146,8 +156,14 @@ def main():
         os.makedirs(args.outdir)
     logging.basicConfig(level=logging.DEBUG,
                         filename=os.path.join(args.outdir, LOGFILE_NAME))
+    logging.debug("Arguments:")
+    logging.debug("Process: %s", args.process)
+    logging.debug("Input: %s", ' '.join(args.input))
+    logging.debug("Output: %s", args.output)
+    logging.debug("Outdir: %s", args.outdir)
+    logging.debug("User: %s", args.user)
 
-    call_wps(args)
+    sys.exit(call_wps(args))
 
 if __name__ == '__main__':
-    main() 
+    main()
