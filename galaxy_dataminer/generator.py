@@ -19,7 +19,7 @@ def generate_tool_description(process, descr, tool_file):
     }
     tool = etree.Element('tool', attrib=tool_attrs)
     etree.SubElement(tool, 'description').text = descr.abstract
-    cmd = etree.SubElement(tool, 'command')
+    cmd = etree.SubElement(tool, 'command', attrib={'interpreter': 'sh'})
     cmd_line = ['call-wps.sh', '--process', process.identifier]
     inputs = etree.SubElement(tool, 'inputs')
     for inp in descr.dataInputs:
