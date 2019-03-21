@@ -14,6 +14,7 @@ import requests
 import six.moves.urllib.parse as urlparse
 import xml.etree.ElementTree as etree
 
+from galaxy import util
 
 LOGFILE_NAME= 'logfile.log'
 
@@ -31,14 +32,15 @@ def build_inputs(process, args_inputs):
             if not v:
                 # skip those not specified, hopefully there will be some sane default
                 continue
+            clean_v = util.restore_text(v)
             inp = process_inputs.get(k, None)
             if inp:
                 if inp.dataType == 'ComplexData':
                     # assume text/xml is fine always?
-                    inputs.append((k, ComplexDataInput(v, mimeType='text/xml')))
+                    inputs.append((k, ComplexDataInput(clean_v, mimeType='text/xml')))
                 else:
                     # let's assume just taking the value is ok
-                    inputs.append((k, v))
+                    inputs.append((k, clean_v))
             else:
                 # shouldn't happen
                 pass
@@ -156,6 +158,11 @@ def main():
         os.makedirs(args.outdir)
     logging.basicConfig(level=logging.DEBUG,
                         filename=os.path.join(args.outdir, LOGFILE_NAME))
+    log_error = logging.StreamHandler(sys.stdout)
+    log_error.setLevel(logging.ERROR)
+
+    logging.getLogger('').addHandler(log_error)
+
     logging.debug("Arguments:")
     logging.debug("Process: %s", args.process)
     logging.debug("Input: %s", ' '.join(args.input))
