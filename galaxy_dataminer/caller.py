@@ -158,10 +158,13 @@ def main():
         os.makedirs(args.outdir)
     logging.basicConfig(level=logging.DEBUG,
                         filename=os.path.join(args.outdir, LOGFILE_NAME))
-    log_error = logging.StreamHandler(sys.stdout)
+    log_error = logging.StreamHandler(sys.stderr)
+    log_out = logging.StreamHandler(sys.stdout)
     log_error.setLevel(logging.ERROR)
+    log_out.setLevel(logging.ERROR)
 
     logging.getLogger('').addHandler(log_error)
+    logging.getLogger('').addHandler(log_out)
 
     logging.debug("Arguments:")
     logging.debug("Process: %s", args.process)
