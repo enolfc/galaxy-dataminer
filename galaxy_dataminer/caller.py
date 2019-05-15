@@ -114,13 +114,16 @@ def produce_output(execution, outfile, outdir, gcube_vre_token_header):
 
 
 def call_wps(args):
-    user_id = args.user
-    if not user_id:
-        logging.error("No user id found on the call, aborting!")
-        sys.exit(1)
-    user_token_file = os.path.join('/etc/d4science/', user_id)
-    with open(user_token_file, 'r') as f:
-        gcube_vre_token = f.read()
+    if not args.token:
+        user_id = args.user
+        if not user_id:
+            logging.error("No user id found on the call, aborting!")
+            sys.exit(1)
+        user_token_file = os.path.join('/etc/d4science/', user_id)
+        with open(user_token_file, 'r') as f:
+            gcube_vre_token = f.read()
+    else:
+        gcube_vre_token = args.token.encode('utf-8')
 
     logging.info("User: %s", args.user)
     logging.info("Token: (SHA256) %s", hashlib.sha256(gcube_vre_token).hexdigest())
@@ -153,6 +156,7 @@ def main():
     parser.add_argument('--output', help='output html file')
     parser.add_argument('--outdir', help='output directory')
     parser.add_argument('--user', help='user')
+    parser.add_argument('--token', help='gcube-token')
 
     args = parser.parse_args()
 
@@ -170,10 +174,14 @@ def main():
 
     logging.debug("Arguments:")
     logging.debug("Process: %s", args.process)
-    logging.debug("Input: %s", ' '.join(args.input))
+    if args.input:
+        logging.debug("Input: %s", ' '.join(args.input))
     logging.debug("Output: %s", args.output)
     logging.debug("Outdir: %s", args.outdir)
     logging.debug("User: %s", args.user)
+    if args.token:
+        logging.debug("Token: (SHA256) %s",
+                      hashlib.sha256(args.token.encode('utf-8')).hexdigest())
 
     exit_code = call_wps(args)
     if exit_code != 0:
