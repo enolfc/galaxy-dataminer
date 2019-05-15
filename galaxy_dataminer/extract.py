@@ -28,6 +28,8 @@ def main():
     arg_parser = argparse.ArgumentParser(description='Get some Dataminer output into Galaxy')
     arg_parser.add_argument('--inputdata',
                             help='Galaxy dataset coming from dataminer execution')
+    arg_parser.add_argument('--inputdir',
+                            help='Extra files path for input')
     arg_parser.add_argument('--descriptor', help='File to get from the output')
     arg_parser.add_argument('--output', help='output file')
 
@@ -39,11 +41,10 @@ def main():
 
     outfiles = html_parser.output_files
 
-    inputdir = os.path.dirname(args.inputdata)
     if args.descriptor:
         for f in outfiles['outputs']:
             if f['descriptor'] == args.descriptor:
-                src = os.path.join(inputdir, f['name'])
+                src = os.path.join(args.inputdir, f['name'])
                 shutil.copyfile(src, args.output)
                 break
         else:
@@ -52,7 +53,7 @@ def main():
         for f in outfiles['outputs']:
             # do not use 'Log of the computation'
             if f['mime_type'] == 'text/csv' and f['descriptor'] != 'Log of the computation':
-                src = os.path.join(inputdir, f['name'])
+                src = os.path.join(args.inputdir, f['name'])
                 shutil.copyfile(src, args.output)
                 break
         else:
