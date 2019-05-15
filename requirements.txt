@@ -1,0 +1,3 @@
+OWSLib
+# enforcing use of older pyproj
+pyproj==1.9.6
