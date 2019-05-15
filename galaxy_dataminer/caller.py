@@ -18,7 +18,6 @@ from galaxy import util
 
 
 LOGFILE = 'logfile.log'
-OUTDESC = '.wps_out.json'
 
 
 def build_inputs(process, args_inputs):
@@ -61,10 +60,10 @@ def produce_output(execution, outfile, outdir, gcube_vre_token_header):
         if exec_id:
             exec_id = exec_id.pop()
 
+    output_dict = { "outputs": []}
     if execution.status == 'ProcessSucceeded':
         html.append('<h2>Outputs:</h2>')
         html.append('<ul>')
-        output_dict = { "outputs": []}
         for out in execution.processOutputs:
             if not out.fileName:
                 continue
@@ -97,8 +96,6 @@ def produce_output(execution, outfile, outdir, gcube_vre_token_header):
                      'descriptor': desc.text}
                 )
         html.append('</ul>')
-        with open(os.path.join(outdir, OUTDESC), 'w') as descriptor:
-            descriptor.write(json.dumps(output_dict))
     else:
         html.append('<h2>Error:</h2>')
         html.append('<ul>')
@@ -113,6 +110,9 @@ def produce_output(execution, outfile, outdir, gcube_vre_token_header):
     html.append('<li>ID: %s</li>' % exec_id)
     html.append('<li><a href="%s">WPS log</a></li>' % LOGFILE)
     html.append('</ul>')
+    html.append('<script type="application/json" id="output">')
+    html.append(json.dumps(output_dict))
+    html.append('</script>')
     html.append('</body></html>')
     if outfile:
         with open(outfile, 'w') as ofile:
