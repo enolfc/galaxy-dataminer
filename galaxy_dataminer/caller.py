@@ -149,7 +149,7 @@ def main():
     parser = argparse.ArgumentParser(description='Call the DataMiner processes')
     parser.add_argument('--process', help='id of the process')
     parser.add_argument('--input', action='append',
-                        help='input parameter)')
+                        help='input parameter')
     parser.add_argument('--output', help='output html file')
     parser.add_argument('--outdir', help='output directory')
     parser.add_argument('--user', help='user')
