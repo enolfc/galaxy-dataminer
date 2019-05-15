@@ -10,7 +10,7 @@ class DataMinerHTMLParser(HTMLParser):
     def __init__(self):
         self.extract_data = False
         self.output_files = {}
-        super().__init__()
+        super(DataMinerHTMLParser, self).__init__()
 
     def handle_starttag(self, tag, attrs):
         if tag == 'script':
