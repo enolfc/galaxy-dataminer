@@ -91,7 +91,11 @@ def produce_output(execution, outfile, outdir, gcube_vre_token_header):
                         handle.write(block)
                 html.append('<li><a href="%s">%s</a></li>'
                             % (file_name, desc.text))
-                output_dict['outputs'].append({'name': file_name, 'mime_type': mime_type.text})
+                output_dict['outputs'].append(
+                    {'name': file_name,
+                     'mime_type': mime_type.text,
+                     'descriptor': desc.text}
+                )
         html.append('</ul>')
         with open(os.path.join(outdir, OUTDESC), 'w') as descriptor:
             descriptor.write(json.dumps(output_dict))
