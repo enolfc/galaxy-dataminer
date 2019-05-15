@@ -16,7 +16,9 @@ import xml.etree.ElementTree as etree
 
 from galaxy import util
 
-LOGFILE_NAME= 'logfile.log'
+
+LOGFILE = 'logfile.log'
+OUTDESC = '.wps_out.json'
 
 
 def build_inputs(process, args_inputs):
@@ -91,7 +93,7 @@ def produce_output(execution, outfile, outdir, gcube_vre_token_header):
                             % (file_name, desc.text))
                 output_dict['outputs'].append({'name': file_name, 'mime_type': mime_type.text})
         html.append('</ul>')
-        with open(os.path.join(outdir, 'wps-out.json'), 'w') as descriptor:
+        with open(os.path.join(outdir, OUTDESC), 'w') as descriptor:
             descriptor.write(json.dumps(output_dict))
     else:
         html.append('<h2>Error:</h2>')
@@ -105,7 +107,7 @@ def produce_output(execution, outfile, outdir, gcube_vre_token_header):
     html.append('<h2>Execution details:</h2><ul>')
     html.append('<li>Status: %s</li>' % execution.status)
     html.append('<li>ID: %s</li>' % exec_id)
-    html.append('<li><a href="%s">WPS log</a></li>' % LOGFILE_NAME)
+    html.append('<li><a href="%s">WPS log</a></li>' % LOGFILE)
     html.append('</ul>')
     html.append('</body></html>')
     if outfile:
@@ -142,7 +144,7 @@ def call_wps(args):
     execution = wps.execute(process_id, inputs, outputs)
     monitorExecution(execution, sleepSecs=5, download=True)
     logging.info("Execution status: %s", execution.status)
-    exit_code = 0 if execution.status == 'ProcessSucceded' else 1
+    exit_code = 0 if execution.status == 'ProcessSucceeded' else 1
     logging.info("Exit code: %d", exit_code)
     produce_output(execution, args.output, args.outdir, gcube_vre_token_header)
     return exit_code
@@ -163,7 +165,7 @@ def main():
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
     logging.basicConfig(level=logging.DEBUG,
-                        filename=os.path.join(args.outdir, LOGFILE_NAME))
+                        filename=os.path.join(args.outdir, LOGFILE))
     log_error = logging.StreamHandler(sys.stderr)
     log_out = logging.StreamHandler(sys.stdout)
     log_error.setLevel(logging.ERROR)
