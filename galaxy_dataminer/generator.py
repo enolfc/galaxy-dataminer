@@ -68,7 +68,6 @@ def find_section(config, section_id):
 def fill_section(section, gcube_vre_token, tool_dir):
     gcube_vre_token_header = {'gcube-token': gcube_vre_token}
 
-
     dataminer_url = ('http://dataminer-prototypes.d4science.org/wps/'
                      'WebProcessingService')
     wps = WebProcessingService(dataminer_url, headers=gcube_vre_token_header)
