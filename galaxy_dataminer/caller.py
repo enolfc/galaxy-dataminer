@@ -96,8 +96,10 @@ def produce_output(execution, outfile, outdir, gcube_vre_token_header):
     else:
         html.append('<h2>Error:</h2>')
         html.append('<ul>')
+        logging.error('Something went wrong:')
         for e in execution.errors:
             html.append('<li><pre>%s</pre></li>' % e.text)
+            logging.error(e.text)
         html.append('</ul>')
 
     html.append('<h2>Execution details:</h2><ul>')
@@ -173,7 +175,11 @@ def main():
     logging.debug("Outdir: %s", args.outdir)
     logging.debug("User: %s", args.user)
 
+    exit_code = call_wps(args)
+    if exit_code != 0:
+        logging.error("Error on wps execution!")
     sys.exit(call_wps(args))
+
 
 if __name__ == '__main__':
     main()
