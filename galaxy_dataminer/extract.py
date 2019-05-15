@@ -4,13 +4,11 @@ import os
 import os.path
 import shutil
 
-from html.parser import HTMLParser
+from six.moves.html_parser import HTMLParser
 
 class DataMinerHTMLParser(HTMLParser):
-    def __init__(self):
-        self.extract_data = False
-        self.output_files = {}
-        super(DataMinerHTMLParser, self).__init__()
+    extract_data = False
+    output_files = {}
 
     def handle_starttag(self, tag, attrs):
         if tag == 'script':
@@ -52,7 +50,7 @@ def main():
             raise Exception("Output not found")
     else:
         for f in outfiles['outputs']:
-            # just do not use the "Log of the Computation"
+            # do not use 'Log of the computation'
             if f['mime_type'] == 'text/csv' and f['descriptor'] != 'Log of the computation':
                 src = os.path.join(inputdir, f['name'])
                 shutil.copyfile(src, args.output)
