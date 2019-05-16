@@ -73,10 +73,14 @@ def fill_section(section, gcube_vre_token, tool_dir):
     wps = WebProcessingService(dataminer_url, headers=gcube_vre_token_header)
 
     for i, process in enumerate(wps.processes):
-        tool_file = os.path.join(tool_dir, 'tool%s.xml' % i) 
+        tool_file = os.path.join(tool_dir, 'tool%s.xml' % i)
         descr = wps.describeprocess(process.identifier)
         generate_tool_description(process, descr, tool_file)
         etree.SubElement(section, 'tool', attrib={'file': tool_file})
+
+    # The extractor
+    extractor_file = os.path.join(tool_dir, 'extract.xml')
+    etree.SubElement(section, 'tool', attrib={'file': extractor_file})
 
 
 def main():
