@@ -20,15 +20,13 @@ def complex_data_input(input_attrs):
     etree.SubElement(select,
                      'option',
                      attrib={'value': 'dataset',
-                             'selected': 'true',
-                             'label': 'User a Galaxy dataset'})
+                             'selected': 'true'}).text = 'Use a Galaxy dataset'
     etree.SubElement(select,
                      'option',
-                     attrib={'value': 'URL',
-                             'label': 'Specify URL'})
+                     attrib={'value': 'URL'}).text = 'Specify URL'
     when_dataset = etree.SubElement(cond, 'when', attrib={'value': 'dataset'})
     dataset_attrs = input_attrs.copy()
-    dataset_attrs.update({'name': 'data', 'type': 'dataset'})
+    dataset_attrs.update({'name': 'data', 'type': 'data'})
     etree.SubElement(when_dataset, 'param', attrib=dataset_attrs)
     when_url = etree.SubElement(cond, 'when', attrib={'value': 'URL'})
     url_attrs = input_attrs.copy()
