@@ -12,7 +12,7 @@ import sys
 from owslib.wps import WebProcessingService, ComplexDataInput, monitorExecution
 import requests
 import six.moves.urllib.parse as urlparse
-import xml.etree.ElementTree as etree
+from lxml import etree
 
 from galaxy import util
 

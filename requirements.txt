@@ -1,3 +1,5 @@
 OWSLib
+# CDATA support
+lxml
 # enforcing use of older pyproj
 pyproj==1.9.6

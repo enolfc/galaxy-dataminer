@@ -7,8 +7,34 @@ import sys
 
 import requests
 from owslib.wps import WebProcessingService, ComplexDataInput, monitorExecution
-import xml.etree.ElementTree as etree
+from lxml import etree
 from xml.dom import minidom
+
+
+def complex_data_input(input_attrs):
+    cond = etree.Element('conditional', attrib={'name': input_attrs['name']})
+    param_attrs = {'name': '%(name)s-selector' % input_attrs,
+                   'type': 'select',
+                   'label': 'Choose the type of input'}
+    select = etree.SubElement(cond, 'param', attrib=param_attrs)
+    etree.SubElement(select,
+                     'option',
+                     attrib={'value': 'dataset',
+                             'selected': 'true',
+                             'label': 'User a Galaxy dataset'})
+    etree.SubElement(select,
+                     'option',
+                     attrib={'value': 'URL',
+                             'label': 'Specify URL'})
+    when_dataset = etree.SubElement(cond, 'when', attrib={'value': 'dataset'})
+    dataset_attrs = input_attrs.copy()
+    dataset_attrs.update({'name': 'data', 'type': 'dataset'})
+    etree.SubElement(when_dataset, 'param', attrib=dataset_attrs)
+    when_url = etree.SubElement(cond, 'when', attrib={'value': 'URL'})
+    url_attrs = input_attrs.copy()
+    url_attrs.update({'name': 'data'})
+    etree.SubElement(when_url, 'param', attrib=url_attrs)
+    return cond
 
 
 def generate_tool_description(process, descr, tool_file):
@@ -29,13 +55,23 @@ def generate_tool_description(process, descr, tool_file):
             'type': 'text',
             'help': inp.title
         }
-        if inp.defaultValue and inp.dataType != 'ComplexData':
-            input_attrs['value'] = inp.defaultValue
-        param = etree.SubElement(inputs, 'param', attrib=input_attrs)
-        cmd_line.append("--input '%(name)s=$%(name)s'" % input_attrs)
+        if inp.dataType == 'ComplexData':
+            inputs.append(complex_data_input(input_attrs))
+            cmd_line.append('#if str($input_type-%(name)s.input_type_selector)'
+                            ' == "URL":' % input_attrs)
+            cmd_line.append("--input '%(name)s=$%(name)s.data'" % input_attrs)
+            cmd_line.append('#else:')
+            cmd_line.append("--inputdata '%(name)s=$%(name)s.data'"
+                            % input_attrs)
+            cmd_line.append('#end if')
+        else:
+            if inp.defaultValue and inp.dataType != 'ComplexData':
+                input_attrs['value'] = inp.defaultValue
+            param = etree.SubElement(inputs, 'param', attrib=input_attrs)
+            cmd_line.append("--input '%(name)s=$%(name)s'" % input_attrs)
     cmd_line.append('--output $html_file --outdir $html_file.files_path')
     cmd_line.append('--user $__user_email__')
-    cmd.text = ' '.join(cmd_line)
+    cmd.text = etree.CDATA('\n'.join(cmd_line))
     outputs = etree.SubElement(tool, 'outputs')
     for o in descr.processOutputs:
         output_attrs = {
