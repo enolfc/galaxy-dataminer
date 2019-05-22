@@ -13,7 +13,7 @@ from xml.dom import minidom
 
 def complex_data_input(input_attrs):
     cond = etree.Element('conditional', attrib={'name': input_attrs['name']})
-    param_attrs = {'name': '%(name)s-selector' % input_attrs,
+    param_attrs = {'name': 'input_type_selector' % input_attrs,
                    'type': 'select',
                    'label': 'Choose the type of input'}
     select = etree.SubElement(cond, 'param', attrib=param_attrs)
@@ -55,7 +55,7 @@ def generate_tool_description(process, descr, tool_file):
         }
         if inp.dataType == 'ComplexData':
             inputs.append(complex_data_input(input_attrs))
-            cmd_line.append('#if str($input_type-%(name)s.input_type_selector)'
+            cmd_line.append('#if str($%(name)s.input_type_selector)'
                             ' == "URL":' % input_attrs)
             cmd_line.append("--input '%(name)s=$%(name)s.data'" % input_attrs)
             cmd_line.append('#else:')
