@@ -3,6 +3,7 @@ from __future__ import print_function
 import argparse
 import logging
 import os
+import shutil
 import sys
 
 import requests
@@ -107,16 +108,22 @@ def fill_section(section, gcube_vre_token, tool_dir):
     wps = WebProcessingService(dataminer_url, headers=gcube_vre_token_header)
 
     tools = {}
-    for i, process in enumerate(wps.processes):
+    tools['CSV extractor'] = {'file': os.path.join(tool_dir, 'extract.xml')}
+    for process in wps.processes:
         descr = wps.describeprocess(process.identifier)
-        tool_file = os.path.join(tool_dir, 'tool%s.xml' % i)
-        generate_tool_description(process, descr, tool_file)
-        tools[descr.title] = tool_file
+        tools[descr.title] = {'descr': descr,
+                              'process': process,
+                              'file': None}
 
-    tools['CSV extractor'] = os.path.join(tool_dir, 'extract.xml')
-
-    for t in sorted(tools):
-        etree.SubElement(section, 'tool', attrib={'file': tools[t]})
+    for i, t in enumerate(sorted(tools)):
+        tool_file = os.path.join(tool_dir, 'tool%02d.xml' % i)
+        if tools[t]['file']:
+            shutil.copyfile(tools[t]['file'], tool_file)
+        else:
+            generate_tool_description(tools[t]['process'],
+                                      tools[t]['descr'],
+                                      tool_file)
+        etree.SubElement(section, 'tool', attrib={'file': tool_file})
 
 
 def main():
