@@ -80,7 +80,7 @@ def generate_tool_description(process, descr, tool_file):
         etree.SubElement(outputs, 'data', attrib=output_attrs)
     etree.SubElement(tool, 'help').text = descr.abstract
     xmlstr = minidom.parseString(etree.tostring(tool)).toprettyxml(indent="  ")
-    with open(tool_file, "w") as f:
+    with open(tool_file, "wb") as f:
         f.write(xmlstr.encode('utf-8'))
 
 def find_section(config, section_id):
@@ -106,15 +106,17 @@ def fill_section(section, gcube_vre_token, tool_dir):
                      'WebProcessingService')
     wps = WebProcessingService(dataminer_url, headers=gcube_vre_token_header)
 
+    tools = {}
     for i, process in enumerate(wps.processes):
-        tool_file = os.path.join(tool_dir, 'tool%s.xml' % i)
         descr = wps.describeprocess(process.identifier)
+        tool_file = os.path.join(tool_dir, 'tool%s.xml' % i)
         generate_tool_description(process, descr, tool_file)
-        etree.SubElement(section, 'tool', attrib={'file': tool_file})
+        tools[descr.title] = tool_file
 
-    # The extractor
-    extractor_file = os.path.join(tool_dir, 'extract.xml')
-    etree.SubElement(section, 'tool', attrib={'file': extractor_file})
+    tools['CSV extractor'] = os.path.join(tool_dir, 'extract.xml')
+
+    for t in sorted(tools):
+        etree.SubElement(section, 'tool', attrib={'file': tools[t]})
 
 
 def main():
