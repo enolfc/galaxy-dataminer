@@ -3,3 +3,4 @@ OWSLib
 lxml
 # enforcing use of older pyproj
 pyproj==1.9.6
+python-magic

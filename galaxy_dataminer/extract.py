@@ -6,14 +6,15 @@ import shutil
 
 from six.moves.html_parser import HTMLParser
 
+
 class DataMinerHTMLParser(HTMLParser):
     extract_data = False
     output_files = {}
 
     def handle_starttag(self, tag, attrs):
-        if tag == 'script':
+        if tag == "script":
             ad = dict(attrs)
-            if ad.get('type') == 'application/json' and ad.get('id') == 'output':
+            if ad.get("type") == "application/json" and ad.get("id") == "output":
                 self.extract_data = True
 
     def handle_endtag(self, tag):
@@ -25,39 +26,45 @@ class DataMinerHTMLParser(HTMLParser):
 
 
 def main():
-    arg_parser = argparse.ArgumentParser(description='Get some Dataminer output into Galaxy')
-    arg_parser.add_argument('--inputdata',
-                            help='Galaxy dataset coming from dataminer execution')
-    arg_parser.add_argument('--inputdir',
-                            help='Extra files path for input')
-    arg_parser.add_argument('--descriptor', help='File to get from the output')
-    arg_parser.add_argument('--output', help='output file')
+    arg_parser = argparse.ArgumentParser(
+        description="Get some Dataminer output into Galaxy"
+    )
+    arg_parser.add_argument(
+        "--inputdata", help="Galaxy dataset coming from dataminer execution"
+    )
+    arg_parser.add_argument("--inputdir", help="Extra files path for input")
+    arg_parser.add_argument("--descriptor", help="File to get from the output")
+    arg_parser.add_argument("--output", help="output file")
 
     args = arg_parser.parse_args()
     html_parser = DataMinerHTMLParser()
 
-    with open(os.path.join(args.inputdata), 'r') as f:
+    with open(os.path.join(args.inputdata), "r") as f:
         html_parser.feed(f.read())
 
     outfiles = html_parser.output_files
 
     if args.descriptor:
-        for f in outfiles['outputs']:
-            if f['descriptor'] == args.descriptor:
-                src = os.path.join(args.inputdir, f['name'])
+        for f in outfiles["outputs"]:
+            if f["descriptor"] == args.descriptor:
+                src = os.path.join(args.inputdir, f["name"])
                 shutil.copyfile(src, args.output)
                 break
         else:
             raise Exception("Output not found")
     else:
-        for f in outfiles['outputs']:
+        for f in outfiles["outputs"]:
             # do not use 'Log of the computation'
-            if f['mime_type'] == 'text/csv' and f['descriptor'] != 'Log of the computation':
-                src = os.path.join(args.inputdir, f['name'])
+            if (
+                f["mime_type"] == "text/csv"
+                and f["descriptor"] != "Log of the computation"
+            ):
+                src = os.path.join(args.inputdir, f["name"])
                 shutil.copyfile(src, args.output)
                 break
         else:
             raise Exception("Output not found")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
