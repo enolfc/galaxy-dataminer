@@ -27,7 +27,7 @@ LOGFILE = "logfile.log"
 
 class CallerHTMLParser(HTMLParser):
     def __init__(self):
-        super().__init__()
+        super(CallerHTMLParser, self).__init__(self)
         self.caller_dataminer_data = None
         self.caller_dataminer_script = False
 
