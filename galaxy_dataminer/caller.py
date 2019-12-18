@@ -249,7 +249,7 @@ def produce_output(execution, outfile, outdir, gcube_vre_token_header):
     html.append("<li>ID: %s</li>" % exec_id)
     html.append('<li><a href="%s">WPS log</a></li>' % LOGFILE)
     html.append("</ul>")
-    html.append('<script type="application/json" id="output">')
+    html.append('<script type="application/json" id="dataminer-output">')
     html.append(json.dumps(output_dict))
     html.append("</script>")
     html.append("</body></html>")
