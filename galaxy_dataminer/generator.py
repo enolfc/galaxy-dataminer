@@ -73,7 +73,6 @@ def generate_tool_description(process, descr, tool_file):
     cmd.text = etree.CDATA("\n".join(cmd_line))
     outputs = etree.SubElement(tool, "outputs")
     for o in descr.processOutputs:
-        printInputOutput(o)
         output_attrs = {
             "format": "html",
             "name": "html_file",
