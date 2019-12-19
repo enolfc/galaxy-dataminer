@@ -26,23 +26,21 @@ LOGFILE = "logfile.log"
 
 
 class CallerHTMLParser(HTMLParser):
-    def __init__(self):
-        super(CallerHTMLParser, self).__init__(self)
-        self.caller_dataminer_data = None
-        self.caller_dataminer_script = False
-
     def handle_starttag(self, tag, attrs):
         if tag == "script":
             for attr in attrs:
                 if attr[0] == "id" and attr[1] == "dataminer-output":
-                    self.caller_dataminer_script = True
+                    self._caller_dataminer_script = True
 
     def handle_endtag(self, tag):
-        self.caller_dataminer_script = False
+        self._caller_dataminer_script = False
 
     def handle_data(self, data):
-        if self.caller_dataminer_script:
-            self.caller_dataminer_data = json.loads(data)
+        if getattr(self, "_caller_dataminer_script", False):
+            self._caller_dataminer_data = json.loads(data)
+
+    def caller_dataminer_data(self):
+        return getattr(self, "_caller_dataminer_data", None)
 
 
 class StorageHub:
@@ -141,7 +139,7 @@ def build_input(arg, is_data, process_inputs, sh):
             # html, try to read it and get the output description
             parser = CallerHTMLParser()
             parser.feed(open(clean_v).read())
-            outputs = parser.caller_dataminer_data
+            outputs = parser.caller_dataminer_data()
             # try to guess which one is the right input
             if outputs:
                 for out in outputs.get("outputs", []):
