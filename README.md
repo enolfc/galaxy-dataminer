@@ -1,3 +1,4 @@
 # Galaxy - dataminer integration
 
-Early tests...
+This repository contains a set of utilities to integrate Galaxy and the
+D4Science DataMiner platform.
