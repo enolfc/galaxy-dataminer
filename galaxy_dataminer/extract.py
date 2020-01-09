@@ -4,26 +4,7 @@ import os
 import os.path
 import shutil
 
-from six.moves.html_parser import HTMLParser
-
-
-class DataMinerHTMLParser(HTMLParser):
-    extract_data = False
-    output_files = {}
-
-    def handle_starttag(self, tag, attrs):
-        if tag == "script":
-            ad = dict(attrs)
-            if ad.get("type") == "application/json" and ad.get("id") == "output":
-                self.extract_data = True
-
-    def handle_endtag(self, tag):
-        self.extract_data = False
-
-    def handle_data(self, data):
-        if self.extract_data:
-            self.output_files = json.loads(data)
-
+from galaxy_dataminer.caller_parser import CallerHTMLParser
 
 def main():
     arg_parser = argparse.ArgumentParser(
@@ -37,12 +18,12 @@ def main():
     arg_parser.add_argument("--output", help="output file")
 
     args = arg_parser.parse_args()
-    html_parser = DataMinerHTMLParser()
+    html_parser = CallerHTMLParser()
 
     with open(os.path.join(args.inputdata), "r") as f:
         html_parser.feed(f.read())
 
-    outfiles = html_parser.output_files
+    outfiles = html_parser.caller_dataminer_data().get("outputs", [])
 
     if args.descriptor:
         for f in outfiles["outputs"]:
