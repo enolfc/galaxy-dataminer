@@ -26,7 +26,7 @@ def main():
     outfiles = html_parser.caller_dataminer_data().get("outputs", [])
 
     if args.descriptor:
-        for f in outfiles["outputs"]:
+        for f in outfiles:
             if f["descriptor"] == args.descriptor:
                 src = os.path.join(args.inputdir, f["name"])
                 shutil.copyfile(src, args.output)
@@ -34,7 +34,7 @@ def main():
         else:
             raise Exception("Output not found")
     else:
-        for f in outfiles["outputs"]:
+        for f in outfiles:
             # do not use 'Log of the computation'
             if (
                 f["mime_type"] == "text/csv"
